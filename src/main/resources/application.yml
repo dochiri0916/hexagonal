@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: base
+
+  profiles:
+    active: local
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        highlight_sql: true
+
+  jackson:
+    time-zone: Asia/Seoul
+    date-format: yyyy-MM-dd HH:mm:ss
+
+jwt:
+  secret: 295713f06b7aac58d9a5aa67cab86532c4a9a29afd1565491ad2242e1f950a12
+  access-expiration: 3600000
+  refresh-expiration: 1209600000
+
+cookie:
+  access-token-name: accessToken
+  refresh-token-name: refreshToken
+  domain: localhost
+  path: /
+  http-only: true
+  secure: true
+  same-site: None
+  max-age: 1209600
+
+cors:
+  allowed-origins:
+    - "http://localhost:3000"
+
+logging:
+  level:
+    com.example.base: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+server:
+  port: 8888
+
+admin:
+  username: admin
+  password: admin123
+  enabled: true
