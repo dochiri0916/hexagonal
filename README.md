@@ -22,7 +22,7 @@ Presentation → Application → Port(out) ← Adapter(out) ← Infrastructure
 
 루트: `com.example.hexagonal`
 
-```
+```yaml
 com.example.hexagonal
 ├─ application
 │  └─ user
@@ -108,9 +108,9 @@ com.example.hexagonal
 
 예시:
 
-```text
+```java
 // presentation/auth/AuthController
-LoginUserResult result = loginUserUseCase.login(new LoginUserCommand(req.email(), req.password()));
+LoginUserResult result = loginUserUseCase.login(new LoginUserCommand(request.email(), request.password()));
 return ApiResponse.success(LoginUserResponse.from(result));
 ```
 
