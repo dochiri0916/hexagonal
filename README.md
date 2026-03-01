@@ -1,6 +1,4 @@
-# Base Template (Hexagonal/Clean Architecture)
-
-이 레파지토리는 스프링 기반 애플리케이션을 위한 헥사고날/클린 아키텍처 템플릿입니다. 레이어 간 의존 규칙, 패키지 구성 규칙, 네이밍 컨벤션을 표준화하여 팀 간 일관성과 유지보수성을 높입니다.
+이 레파지토리는 스프링 기반 애플리케이션을 위한 헥사고날/클린 아키텍처 템플릿이다. 레이어 간 의존 규칙, 패키지 구성 규칙, 네이밍 컨벤션을 표준화하여 팀 간 일관성과 유지보수성을 높인다.
 
 ## 아키텍처 개요
 
@@ -43,9 +41,11 @@ com.example.hexagonal
 │  ├─ common.persistence  # JPA 공통 설정(Auditing 등)
 │  ├─ security            # CORS, EntryPoint, Cookie 유틸 등
 │  └─ user
-│     └─ adapter
-│        └─ out
-│           └─ persistence # 영속 어댑터(JPA Repository/Mapper/Entity)
+│     ├─ adapter
+│     │  └─ out
+│     │     └─ persistence # 영속 어댑터, JPA Repository
+│     ├─ entity            # JPA Entity
+│     └─ mapper            # Domain ↔ Entity 변환
 └─ presentation
    ├─ auth
    │  ├─ request          # 요청 DTO (Web 전용)
@@ -96,7 +96,7 @@ com.example.hexagonal
 
 ### Port/Adapter
 - Port 인터페이스: `application.*.port.in|out`
-- Adapter 구현: `infrastructure.*.adapter.in|out.[기술명]`
+- Adapter 구현: `infrastructure.*.adapter.in|out` (필요 시 하위 기술 패키지 사용)
 - 예: `LoadUserPort`, `UserPersistenceAdapter implements LoadUserPort`
 
 ## 컨트롤러 역할
@@ -123,7 +123,8 @@ return ApiResponse.success(LoginUserResponse.from(result));
 ## 예외/응답 규칙
 
 - 도메인/애플리케이션 실패는 의미 있는 예외로 표현(예: `InvalidPasswordException`, `UserNotFoundException`)
-- 프레젠테이션에서는 예외를 잡아 적절한 상태코드/메시지로 변환(`ApiExceptionHandler`)
+- 비즈니스 예외는 프레젠테이션에서 상태코드/메시지로 변환(`ApiExceptionHandler`)
+- 인증/인가 실패(401/403)는 시큐리티 핸들러(`JwtAuthenticationEntryPoint`, `JwtAccessDeniedHandler`)에서 처리
 - 성공 응답은 `ApiResponse<T>`로 일관되게 감싼다
 
 ## 체크리스트
@@ -275,7 +276,7 @@ return ApiResponse.success(LoginUserResponse.from(result));
 
 - 입력 포트(Port.in): 유스케이스 인터페이스. 예) `LoginUserUseCase#login`
 - 출력 포트(Port.out): 외부 연동 추상화. 예) `LoadUserPort`, `JwtTokenPort`
-- 어댑터 구현 위치: `infrastructure.*.adapter.in|out.[기술명]`
+- 어댑터 구현 위치: `infrastructure.*.adapter.in|out` (필요 시 하위 기술 패키지 사용)
 - 의존 방향: Application → Port(out) ← Adapter(out) ← Infrastructure
 - 새 연동 추가 절차
   1) Port(out) 정의(필요한 계약 최소화)
@@ -306,6 +307,7 @@ return ApiResponse.success(LoginUserResponse.from(result));
 - 클레임 권장
   - `sub`: 사용자 publicId
   - `role`: 권한(Role)
+  - `category`: 토큰 유형(`access`/`refresh`)
   - `iat/exp`: 발급/만료
 - 컨트롤러에서의 주체 사용: `@AuthenticationPrincipal String userPublicId`
 - 응답: 로그인 성공 시 `LoginUserResponse`에 `accessToken` 포함
@@ -319,12 +321,12 @@ return ApiResponse.success(LoginUserResponse.from(result));
   - Domain/VO: 본질적 불변식(이메일 형식, 공백 금지 등)
   - Application: 권한/상태/흐름(활성 사용자, 비밀번호 일치 등)
 - 예외 → 상태코드 매핑(권장)
-  - `InvalidPasswordException` → 401 Unauthorized
+  - `InvalidPasswordException` → 400 Bad Request
   - `InactiveUserException` → 403 Forbidden
   - `UserNotFoundException` → 404 Not Found
   - `DuplicateEmailException` → 409 Conflict
   - 기타 유효성 실패 → 400 Bad Request
-- 응답 포맷: 성공은 `ApiResponse<T>`, 에러는 `ApiExceptionHandler`에서 표준 형태로 변환
+- 응답 포맷: 성공은 `ApiResponse<T>`, 비즈니스 에러는 `ApiExceptionHandler`, 인증/인가 에러는 시큐리티 핸들러에서 변환
 
 ---
 
