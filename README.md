@@ -349,7 +349,7 @@ Request(RegisterUserRequest) → Controller → RegisterUserCommand → Register
 → Response 매핑(RegisterUserResponse) → ApiResponse.success
 
 [POST /api/auth/login]
-Request(LoginUserRequest) → Controller → LoginUserCommand → UserFinder.loadByEmail
+Request(LoginUserRequest) → Controller → LoginUserCommand → UserFinder.findByEmail
 → PasswordEncoder.matches → 상태검사(UserStatus.ACTIVE)
 → JwtTokenPort.generateAccessToken(publicId, role) → LoginUserResult → Response
 
